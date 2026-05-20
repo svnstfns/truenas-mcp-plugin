@@ -1,0 +1,23 @@
+{
+  "name": "truenas-mcp-plugin",
+  "owner": {
+    "name": "svnstfns"
+  },
+  "description": "Claude Code marketplace for the truenas-mcp plugin — deploy and manage TrueNAS Scale apps in the pvnkn3t infrastructure.",
+  "plugins": [
+    {
+      "name": "truenas-mcp",
+      "source": "./plugins/truenas-mcp",
+      "description": "Bundles the truenas-mcp server plus skills and slash commands for TrueNAS Scale deployment workflows.",
+      "version": "0.1.0",
+      "author": {
+        "name": "svnstfns"
+      },
+      "homepage": "https://github.com/svnstfns/truenas-mcp-plugin",
+      "repository": "https://github.com/svnstfns/truenas-mcp-plugin",
+      "license": "MIT",
+      "category": "infrastructure",
+      "tags": ["truenas", "docker", "deployment", "homelab", "pvnkn3t"]
+    }
+  ]
+}

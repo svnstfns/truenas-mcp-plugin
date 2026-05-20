@@ -40,12 +40,24 @@ environment (or in `~/.claude.json`).
 
 ### Install the plugin
 
-```bash
-claude plugin install https://github.com/svnstfns/truenas-mcp-plugin
+This repo is a Claude Code **marketplace** that hosts a single
+plugin. Install in two steps from a Claude Code session:
+
+```
+/plugin marketplace add svnstfns/truenas-mcp-plugin
+/plugin install truenas-mcp@truenas-mcp-plugin
 ```
 
-Restart Claude Code. The `truenas` MCP server will auto-start, and
-the three skills + two commands will be discoverable.
+Local development install (after cloning):
+
+```
+/plugin marketplace add /Users/<you>/gh-projects/truenas-mcp-plugin
+/plugin install truenas-mcp@truenas-mcp-plugin
+```
+
+Restart the Claude Code session afterward. The `truenas` MCP server
+will auto-start, and the three skills + two slash commands will be
+discoverable.
 
 ### Verify
 
@@ -141,14 +153,32 @@ Ask Claude:
 
 ## Uninstall
 
-```bash
-claude plugin uninstall truenas-mcp
+```
+/plugin uninstall truenas-mcp@truenas-mcp-plugin
+/plugin marketplace remove truenas-mcp-plugin    # optional
 ```
 
 To also remove the service user from the NAS:
 
 ```bash
 uvx --from git+https://github.com/svnstfns/truenas-mcp.git truenas-mcp uninstall
+```
+
+## Repo layout
+
+This repo is a marketplace with one nested plugin:
+
+```
+truenas-mcp-plugin/                          ← marketplace root
+├── .claude-plugin/
+│   └── marketplace.json                     ← marketplace catalog
+└── plugins/
+    └── truenas-mcp/                         ← plugin root
+        ├── .claude-plugin/
+        │   └── plugin.json                  ← plugin manifest
+        ├── .mcp.json                        ← MCP server bundle
+        ├── skills/                          ← three workflow skills
+        └── commands/                        ← two slash commands
 ```
 
 ## License
