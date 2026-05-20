@@ -1,0 +1,20 @@
+{
+  "name": "truenas-mcp",
+  "version": "0.1.0",
+  "description": "Deploy and manage TrueNAS Scale apps from Claude Code — bundles the truenas-mcp server plus opinionated skills and slash commands for the pvnkn3t infrastructure.",
+  "author": {
+    "name": "svnstfns",
+    "url": "https://github.com/svnstfns"
+  },
+  "homepage": "https://github.com/svnstfns/truenas-mcp-plugin",
+  "repository": "https://github.com/svnstfns/truenas-mcp-plugin",
+  "license": "MIT",
+  "keywords": [
+    "truenas",
+    "docker",
+    "deployment",
+    "mcp",
+    "homelab",
+    "pvnkn3t"
+  ]
+}

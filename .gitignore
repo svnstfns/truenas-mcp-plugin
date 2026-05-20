@@ -1,0 +1,12 @@
+# Editor / OS
+.DS_Store
+.idea/
+.vscode/
+*.swp
+
+# Claude Code local state
+.claude/
+
+# Environment files
+.env
+.env.local

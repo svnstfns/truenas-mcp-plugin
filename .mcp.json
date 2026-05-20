@@ -1,0 +1,19 @@
+{
+  "mcpServers": {
+    "truenas": {
+      "type": "stdio",
+      "command": "uvx",
+      "args": [
+        "--from",
+        "git+https://github.com/svnstfns/truenas-mcp.git",
+        "truenas-mcp"
+      ],
+      "env": {
+        "TRUENAS_HOST": "${TRUENAS_HOST:-nas.pvnkn3t.de}",
+        "TRUENAS_API_KEY": "${TRUENAS_API_KEY}",
+        "TRUENAS_SSL_VERIFY": "${TRUENAS_SSL_VERIFY:-true}",
+        "MOCK_TRUENAS": "${MOCK_TRUENAS:-false}"
+      }
+    }
+  }
+}
