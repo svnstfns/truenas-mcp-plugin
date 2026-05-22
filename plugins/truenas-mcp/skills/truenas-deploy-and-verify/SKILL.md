@@ -1,36 +1,41 @@
 ---
 name: truenas-deploy-and-verify
-description: Deploy a Docker Compose stack to TrueNAS Scale and verify it came up healthy. Use whenever the user asks to deploy, ship, install, or launch an app on the NAS — especially when they want to confirm the deployment actually works rather than just submitting it. Wraps validate → deploy → poll job → verify → on failure pull logs and report.
+description: Deploy a Docker Compose stack to TrueNAS Scale and verify it came up healthy. Use after the deployment architecture is settled — wraps validate → deploy → poll job → verify, and on failure pulls logs and reports. For the assessment and architecture decisions that must happen first, use truenas-deployment-planning.
 ---
 
 # Deploy and verify a TrueNAS app
 
-This skill executes a safe deploy pipeline that catches failures
-early. It never just "fires and forgets" — the deploy is always
-followed by a verification step.
+This skill executes a safe deploy pipeline that catches failures early.
+It never just "fires and forgets" — the deploy is always followed by a
+verification step.
+
+This skill is the **hands**, not the head. It assumes the deployment
+architecture is already settled: which pool, which network model, what
+gets exposed. If that has not happened yet, run
+**`truenas-deployment-planning`** first — deploying without it means
+inheriting whatever default the tooling guessed.
 
 ## When to use this
 
-Use this skill when the user says any of:
+Use this skill once the architecture is settled and the user wants to
+ship a concrete compose:
 
-- "Deploy nginx on the NAS"
-- "Install paperless on TrueNAS"
+- "Deploy nginx on the NAS" (after planning)
+- "Install paperless on TrueNAS" (after planning)
 - "Launch this compose file as an app"
-- "Ship this stack to the NAS and make sure it's running"
 
 If the user only asks to *validate* a compose file (without deploying),
 call `validate_compose` directly instead.
 
 ## Inputs
 
-The user gives you (or you derive from context):
-
-- **app_name** — DNS-compatible lowercase name (`[a-z0-9-]`, no leading/trailing dash).
-  Used for the Traefik router, the host directory under `/mnt/<pool>/<app-name>/`,
-  and the TrueNAS app name. Must match across all three.
-- **compose_yaml** — the Docker Compose file as a string.
-
-If `app_name` is missing, ask once. Don't guess from the compose `service:` block.
+- **app_name** — DNS-compatible lowercase name (`[a-z0-9-]`, no
+  leading/trailing dash). It is the TrueNAS app name and the basis for
+  the host directory under the chosen pool. If it is missing, ask once —
+  do not guess it from the compose `services:` block.
+- **compose_yaml** — the Docker Compose file as a string. Its `networks:`
+  and `ports:` must already reflect the architecture settled during
+  planning.
 
 ## Procedure
 
@@ -63,10 +68,10 @@ calls `app.create` → polls the job until `SUCCESS` or `FAILED`.
 Call `verify_deployment(app_name)`.
 
 - If `app_running == true` and `health_status == "healthy"`: success.
-  Report to user with: app name, status, ports, and the
-  `<app-name>.pvnkn3t.de` URL if there's a Traefik label.
+  Report to the user with app name, status, ports, and — if the compose
+  carries a reverse-proxy label — the public URL it routes to.
 - If `app_running == true` but `health_status != "healthy"`: ambiguous.
-  The container started but health checks aren't passing. Continue to
+  The container started but health checks are not passing. Continue to
   Step 4 to pull logs.
 - If `app_running == false`: continue to Step 4.
 
@@ -90,36 +95,35 @@ user what to do:
 
 For each category, the recommended action is:
 
-- **Image pull**: verify the image name and tag; check whether it's a
+- **Image pull**: verify the image name and tag; check whether it is a
   private registry that needs credentials.
-- **Port conflict**: call `list_apps` to find the colliding app; pick
-  a different `node_port`.
-- **Volume mount**: check that the host path under `/mnt/nvme-01/<app-name>/`
-  exists and is owned by `apps:apps`. The converter normally handles
-  this — if it didn't, something raced.
-- **Config error**: show the relevant compose fragment; ask the user
-  to adjust.
-- **Resource limit**: suggest adding memory limits or moving heavy
-  apps to a different pool.
+- **Port conflict**: call `list_apps` to find the colliding app; pick a
+  different host port.
+- **Volume mount**: check that the host path under the chosen pool
+  exists and is owned correctly. The converter normally creates it — if
+  it did not, something raced.
+- **Config error**: show the relevant compose fragment; ask the user to
+  adjust.
+- **Resource limit**: suggest adding memory limits or moving heavy apps
+  to a pool with more headroom.
 
 ### Step 5 — Cleanup on hard failure
 
 If the user wants to abandon the deployment, suggest `purge_app(app_name)`
-(handled by the `truenas-purge-failed` skill) which removes the app
-and its volumes from TrueNAS. The host directories under
-`/mnt/<pool>/<app-name>/` are kept — Sven decides manually whether to
-delete them.
+(handled by the `truenas-purge-failed` skill), which removes the app and
+its volumes from TrueNAS. Host directories under `/mnt/` are kept — the
+user decides manually whether to delete them.
 
 ## Output format
 
-When the deployment succeeds, summarize like this:
+When the deployment succeeds:
 
 ```
 ✓ Deployed <app-name>
   Status:   RUNNING
   Pool:     <pool from deploy result>
   Ports:    <list>
-  URL:      https://<app-name>.pvnkn3t.de   (if Traefik label present)
+  URL:      <public URL>   (only if a reverse-proxy label is present)
   Job ID:   <job_id>
 ```
 
